@@ -1,0 +1,45 @@
+# github.com/campoy/embedmd v1.0.0
+## explicit
+github.com/campoy/embedmd
+github.com/campoy/embedmd/embedmd
+# github.com/gobuffalo/here v0.6.0
+## explicit; go 1.13
+github.com/gobuffalo/here
+# github.com/google/go-jsonnet v0.18.0
+## explicit; go 1.13
+github.com/google/go-jsonnet
+github.com/google/go-jsonnet/ast
+github.com/google/go-jsonnet/astgen
+github.com/google/go-jsonnet/internal/errors
+github.com/google/go-jsonnet/internal/parser
+github.com/google/go-jsonnet/internal/program
+# github.com/google/jsonschema-go v0.4.2
+## explicit; go 1.23.0
+github.com/google/jsonschema-go/jsonschema
+# github.com/inconshreveable/mousetrap v1.1.0
+## explicit; go 1.18
+github.com/inconshreveable/mousetrap
+# github.com/jsonnet-libs/docsonnet v0.0.5
+## explicit; go 1.19
+github.com/jsonnet-libs/docsonnet/pkg/docsonnet
+# github.com/markbates/pkger v0.15.1
+## explicit; go 1.13
+github.com/markbates/pkger
+github.com/markbates/pkger/internal/maps
+github.com/markbates/pkger/pkging
+github.com/markbates/pkger/pkging/stdos
+# github.com/pmezard/go-difflib v1.0.0
+## explicit
+github.com/pmezard/go-difflib/difflib
+# github.com/spf13/cobra v1.10.2
+## explicit; go 1.15
+github.com/spf13/cobra
+# github.com/spf13/pflag v1.0.9
+## explicit; go 1.12
+github.com/spf13/pflag
+# gopkg.in/yaml.v2 v2.2.7
+## explicit
+gopkg.in/yaml.v2
+# sigs.k8s.io/yaml v1.1.0
+## explicit
+sigs.k8s.io/yaml
