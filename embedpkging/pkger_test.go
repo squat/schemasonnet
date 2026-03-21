@@ -113,7 +113,9 @@ func TestOpen(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open: %v", err)
 	}
-	defer f.Close()
+	defer func() {
+		_ = f.Close()
+	}()
 
 	data, err := io.ReadAll(f)
 	if err != nil {
@@ -131,7 +133,9 @@ func TestOpenWithPackagePrefix(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open with pkg prefix: %v", err)
 	}
-	defer f.Close()
+	defer func() {
+		_ = f.Close()
+	}()
 
 	data, err := io.ReadAll(f)
 	if err != nil {
@@ -157,7 +161,9 @@ func TestSeek(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open: %v", err)
 	}
-	defer f.Close()
+	defer func() {
+		_ = f.Close()
+	}()
 
 	// Read first 5 bytes.
 	buf := make([]byte, 5)
@@ -232,11 +238,11 @@ func TestWalk(t *testing.T) {
 
 	// All three files plus the root "." and "sub" directory should appear.
 	want := map[string]struct{}{
-		"example.com/fake:/":          struct{}{},
-		"example.com/fake:/hello.txt": struct{}{},
-		"example.com/fake:/sub":       struct{}{},
-		"example.com/fake:/sub/a.txt": struct{}{},
-		"example.com/fake:/sub/b.txt": struct{}{},
+		"example.com/fake:/":          {},
+		"example.com/fake:/hello.txt": {},
+		"example.com/fake:/sub":       {},
+		"example.com/fake:/sub/a.txt": {},
+		"example.com/fake:/sub/b.txt": {},
 	}
 	for _, v := range visited {
 		delete(want, v)
@@ -286,7 +292,9 @@ func TestFileName(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open: %v", err)
 	}
-	defer f.Close()
+	defer func() {
+		_ = f.Close()
+	}()
 
 	if f.Name() != "example.com/fake:/hello.txt" {
 		t.Errorf("Name = %q, want %q", f.Name(), "example.com/fake:/hello.txt")
@@ -310,7 +318,9 @@ func TestReaddir(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open /sub: %v", err)
 	}
-	defer dir.Close()
+	defer func() {
+		_ = dir.Close()
+	}()
 
 	infos, err := dir.Readdir(-1)
 	if err != nil {
@@ -372,7 +382,9 @@ func TestWriteUnsupported(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open: %v", err)
 	}
-	defer f.Close()
+	defer func() {
+		_ = f.Close()
+	}()
 	_, err = f.Write([]byte("oops"))
 	if err == nil || !errors.Is(err, errors.ErrUnsupported) {
 		t.Errorf("Write: expected ErrUnsupported, got %v", err)
@@ -390,13 +402,17 @@ func TestFileHTTPOpen(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open /sub: %v", err)
 	}
-	defer dir.Close()
+	defer func() {
+		_ = dir.Close()
+	}()
 
 	httpFile, err := dir.Open("a.txt")
 	if err != nil {
 		t.Fatalf("dir.Open(a.txt): %v", err)
 	}
-	defer httpFile.Close()
+	defer func() {
+		_ = httpFile.Close()
+	}()
 
 	data, err := io.ReadAll(httpFile)
 	if err != nil {
