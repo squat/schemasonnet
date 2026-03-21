@@ -19,7 +19,7 @@ github.com/google/jsonschema-go/jsonschema
 # github.com/inconshreveable/mousetrap v1.1.0
 ## explicit; go 1.18
 github.com/inconshreveable/mousetrap
-# github.com/jsonnet-libs/docsonnet v0.0.5
+# github.com/jsonnet-libs/docsonnet v0.0.6
 ## explicit; go 1.19
 github.com/jsonnet-libs/docsonnet/pkg/docsonnet
 # github.com/markbates/pkger v0.15.1
