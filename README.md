@@ -18,6 +18,7 @@ Usage:
   schemasonnet [file] [flags]
 
 Flags:
-  -h, --help      help for schemasonnet
-  -v, --version   version for schemasonnet
+  -h, --help            help for schemasonnet
+  -J, --jpath strings   Specify an additional library search dir (right-most wins) (default [vendor])
+  -v, --version         version for schemasonnet
 ```
