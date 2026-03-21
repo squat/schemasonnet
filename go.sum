@@ -15,8 +15,8 @@ github.com/google/jsonschema-go v0.4.2 h1:tmrUohrwoLZZS/P3x7ex0WAVknEkBZM46iALbc
 github.com/google/jsonschema-go v0.4.2/go.mod h1:r5quNTdLOYEz95Ru18zA0ydNbBuYoo9tgaYcxEYhJVE=
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
-github.com/jsonnet-libs/docsonnet v0.0.5 h1:Q87Fs/U+E2wv0G7ezVD7tW5f7SwfQLL1vptmjA3MQx8=
-github.com/jsonnet-libs/docsonnet v0.0.5/go.mod h1:A7GAoddNfvUyc22xyixJnc78PDivRv7NWT55iXAZiME=
+github.com/jsonnet-libs/docsonnet v0.0.6 h1:d/S3wTuYnzL6Hl+pPTbColLSd6RZEWw2Vi4ofYsuq0U=
+github.com/jsonnet-libs/docsonnet v0.0.6/go.mod h1:A7GAoddNfvUyc22xyixJnc78PDivRv7NWT55iXAZiME=
 github.com/kr/pretty v0.1.0 h1:L/CwN0zerZDmRFUapSPitk6f+Q3+0za1rQkzVuMiMFI=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
