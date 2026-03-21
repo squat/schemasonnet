@@ -32,15 +32,14 @@ import (
 // TODO(sbarzowski) use it as a pointer in most places b/c it can sometimes be shared
 // for example it can be shared between array elements and function arguments
 type environment struct {
-	selfBinding selfBinding
-
 	// Bindings introduced in this frame. The way previous bindings are treated
 	// depends on the type of a frame.
 	// If cleanEnv == true then previous bindings are ignored (it's a clean
 	// environment with just the variables we have here).
 	// If cleanEnv == false then if this frame doesn't contain a binding
 	// previous bindings will be used.
-	upValues bindingFrame
+	upValues    bindingFrame
+	selfBinding selfBinding
 }
 
 func makeEnvironment(upValues bindingFrame, sb selfBinding) environment {
@@ -50,8 +49,8 @@ func makeEnvironment(upValues bindingFrame, sb selfBinding) environment {
 	}
 }
 
-func (i *interpreter) getCurrentStackTrace() []traceFrame {
-	var result []traceFrame
+func (i *interpreter) getCurrentStackTrace() []TraceFrame {
+	var result []TraceFrame
 	for _, f := range i.stack.stack {
 		if f.cleanEnv {
 			result = append(result, traceElementToTraceFrame(f.trace))
@@ -64,20 +63,20 @@ func (i *interpreter) getCurrentStackTrace() []traceFrame {
 }
 
 type callFrame struct {
+	// Tracing information about the place where it was called from.
+	trace traceElement
+
+	env environment
+
 	// True if it switches to a clean environment (function call or array element)
 	// False otherwise, e.g. for local
 	cleanEnv bool
-
-	// Tracing information about the place where it was called from.
-	trace traceElement
 
 	// Whether this frame can be removed from the stack when it doesn't affect
 	// the evaluation result, but in case of an error, it won't appear on the
 	// stack trace.
 	// It's used for tail call optimization.
 	trimmable bool
-
-	env environment
 }
 
 func dumpCallFrame(c *callFrame) string {
@@ -95,10 +94,10 @@ func dumpCallFrame(c *callFrame) string {
 }
 
 type callStack struct {
+	currentTrace traceElement
+	stack        []*callFrame
 	calls        int
 	limit        int
-	stack        []*callFrame
-	currentTrace traceElement
 }
 
 func dumpCallStack(c *callStack) string {
@@ -209,6 +208,20 @@ func (s *callStack) lookUpVar(id ast.Identifier) *cachedThunk {
 	return nil
 }
 
+func (s *callStack) listVars() []ast.Identifier {
+	vars := []ast.Identifier{}
+	for i := len(s.stack) - 1; i >= 0; i-- {
+		for k := range s.stack[i].env.upValues {
+			vars = append(vars, k)
+		}
+		if s.stack[i].cleanEnv {
+			// Nothing beyond the captured environment of the thunk / closure.
+			break
+		}
+	}
+	return vars
+}
+
 func (s *callStack) lookUpVarOrPanic(id ast.Identifier) *cachedThunk {
 	th := s.lookUpVar(id)
 	if th == nil {
@@ -226,7 +239,7 @@ func (s *callStack) getCurrentEnv(ast ast.Node) environment {
 
 // Build a binding frame containing specified variables.
 func (s *callStack) capture(freeVars ast.Identifiers) bindingFrame {
-	env := make(bindingFrame)
+	env := make(bindingFrame, len(freeVars))
 	for _, fv := range freeVars {
 		env[fv] = s.lookUpVarOrPanic(fv)
 	}
@@ -240,12 +253,15 @@ func makeCallStack(limit int) callStack {
 	}
 }
 
+type EvalHook struct {
+	pre  func(i *interpreter, n ast.Node)
+	post func(i *interpreter, n ast.Node, v value, err error)
+}
+
 // Keeps current execution context and evaluates things
 type interpreter struct {
-	// Current stack. It is used for:
-	// 1) Keeping environment (object we're in, variables)
-	// 2) Diagnostic information in case of failure
-	stack callStack
+	// Output stream for trace() for
+	traceOut io.Writer
 
 	// External variables
 	extVars map[string]*cachedThunk
@@ -259,13 +275,17 @@ type interpreter struct {
 	// Keeps imports
 	importCache *importCache
 
-	// Output stream for trace() for
-	traceOut io.Writer
+	// Current stack. It is used for:
+	// 1) Keeping environment (object we're in, variables)
+	// 2) Diagnostic information in case of failure
+	stack callStack
+
+	evalHook EvalHook
 }
 
 // Map union, b takes precedence when keys collide.
 func addBindings(a, b bindingFrame) bindingFrame {
-	result := make(bindingFrame)
+	result := make(bindingFrame, len(a))
 
 	for k, v := range a {
 		result[k] = v
@@ -288,6 +308,13 @@ func (i *interpreter) newCall(env environment, trimmable bool) error {
 }
 
 func (i *interpreter) evaluate(a ast.Node, tc tailCallStatus) (value, error) {
+	i.evalHook.pre(i, a)
+	v, err := i.rawevaluate(a, tc)
+	i.evalHook.post(i, a, v, err)
+	return v, err
+}
+
+func (i *interpreter) rawevaluate(a ast.Node, tc tailCallStatus) (value, error) {
 	trace := traceElement{
 		loc:     a.Loc(),
 		context: a.Context(),
@@ -390,7 +417,7 @@ func (i *interpreter) evaluate(a ast.Node, tc tailCallStatus) (value, error) {
 
 	case *ast.DesugaredObject:
 		// Evaluate all the field names.  Check for null, dups, etc.
-		fields := make(simpleObjectFieldMap)
+		fields := make(simpleObjectFieldMap, len(node.Fields))
 		for _, field := range node.Fields {
 			fieldNameValue, err := i.evaluate(field.Name, nonTailCall)
 			if err != nil {
@@ -414,7 +441,7 @@ func (i *interpreter) evaluate(a ast.Node, tc tailCallStatus) (value, error) {
 			if field.PlusSuper {
 				f = &plusSuperUnboundField{f}
 			}
-			fields[fieldName] = simpleObjectField{field.Hide, f}
+			fields[fieldName] = simpleObjectField{f, field.Hide}
 		}
 		var asserts []unboundField
 		for _, assert := range node.Asserts {
@@ -488,6 +515,10 @@ func (i *interpreter) evaluate(a ast.Node, tc tailCallStatus) (value, error) {
 		codePath := node.Loc().FileName
 		return i.importCache.importString(codePath, node.File.Value, i)
 
+	case *ast.ImportBin:
+		codePath := node.Loc().FileName
+		return i.importCache.importBinary(codePath, node.File.Value, i)
+
 	case *ast.LiteralBoolean:
 		return makeValueBoolean(node.Value), nil
 
@@ -508,7 +539,7 @@ func (i *interpreter) evaluate(a ast.Node, tc tailCallStatus) (value, error) {
 		return makeValueString(node.Value), nil
 
 	case *ast.Local:
-		vars := make(bindingFrame)
+		vars := make(bindingFrame, len(node.Binds))
 		bindEnv := i.stack.getCurrentEnv(a)
 		for _, bind := range node.Binds {
 			th := cachedThunk{env: &bindEnv, body: bind.Body}
@@ -554,7 +585,7 @@ func (i *interpreter) evaluate(a ast.Node, tc tailCallStatus) (value, error) {
 		if err != nil {
 			return nil, err
 		}
-		hasField := objectHasField(i.stack.getSelfBinding().super(), indexStr.getGoString(), withHidden)
+		hasField := objectHasField(i.stack.getSelfBinding().super(), indexStr.getGoString())
 		return makeValueBoolean(hasField), nil
 
 	case *ast.Function:
@@ -720,7 +751,7 @@ func (i *interpreter) manifestJSON(v value) (interface{}, error) {
 		}
 		i.stack.clearCurrentTrace()
 
-		result := make(map[string]interface{})
+		result := make(map[string]interface{}, len(fieldNames))
 
 		for _, fieldName := range fieldNames {
 			msg := ast.MakeLocationRangeMessage(fmt.Sprintf("Field %#v", fieldName))
@@ -946,6 +977,16 @@ func jsonToValue(i *interpreter, v interface{}) (value, error) {
 
 	case bool:
 		return makeValueBoolean(v), nil
+	case int:
+		return makeDoubleCheck(i, float64(v))
+	case int8:
+		return makeDoubleCheck(i, float64(v))
+	case int16:
+		return makeDoubleCheck(i, float64(v))
+	case int32:
+		return makeDoubleCheck(i, float64(v))
+	case int64:
+		return makeDoubleCheck(i, float64(v))
 	case float64:
 		return makeDoubleCheck(i, v)
 
@@ -1177,7 +1218,7 @@ func buildStdObject(i *interpreter) (*valueObject, error) {
 	}
 
 	for name, value := range builtinFields {
-		obj.fields[name] = simpleObjectField{ast.ObjectFieldHidden, value}
+		obj.fields[name] = simpleObjectField{value, ast.ObjectFieldHidden}
 	}
 	return objVal.(*valueObject), nil
 }
@@ -1227,17 +1268,18 @@ func prepareExtVars(i *interpreter, ext vmExtMap, kind string) map[string]*cache
 func buildObject(hide ast.ObjectFieldHide, fields map[string]value) *valueObject {
 	fieldMap := simpleObjectFieldMap{}
 	for name, v := range fields {
-		fieldMap[name] = simpleObjectField{hide, &readyValue{v}}
+		fieldMap[name] = simpleObjectField{&readyValue{v}, hide}
 	}
 	return makeValueSimpleObject(bindingFrame{}, fieldMap, nil, nil)
 }
 
-func buildInterpreter(ext vmExtMap, nativeFuncs map[string]*NativeFunction, maxStack int, ic *importCache, traceOut io.Writer) (*interpreter, error) {
+func buildInterpreter(ext vmExtMap, nativeFuncs map[string]*NativeFunction, maxStack int, ic *importCache, traceOut io.Writer, evalHook EvalHook) (*interpreter, error) {
 	i := interpreter{
 		stack:       makeCallStack(maxStack),
 		importCache: ic,
 		traceOut:    traceOut,
 		nativeFuncs: nativeFuncs,
+		evalHook:    evalHook,
 	}
 
 	stdObj, err := buildStdObject(&i)
@@ -1310,9 +1352,9 @@ func evaluateAux(i *interpreter, node ast.Node, tla vmExtMap) (value, error) {
 
 // TODO(sbarzowski) this function takes far too many arguments - build interpreter in vm instead
 func evaluate(node ast.Node, ext vmExtMap, tla vmExtMap, nativeFuncs map[string]*NativeFunction,
-	maxStack int, ic *importCache, traceOut io.Writer, stringOutputMode bool) (string, error) {
+	maxStack int, ic *importCache, traceOut io.Writer, stringOutputMode bool, evalHook EvalHook) (string, error) {
 
-	i, err := buildInterpreter(ext, nativeFuncs, maxStack, ic, traceOut)
+	i, err := buildInterpreter(ext, nativeFuncs, maxStack, ic, traceOut, evalHook)
 	if err != nil {
 		return "", err
 	}
@@ -1339,9 +1381,9 @@ func evaluate(node ast.Node, ext vmExtMap, tla vmExtMap, nativeFuncs map[string]
 
 // TODO(sbarzowski) this function takes far too many arguments - build interpreter in vm instead
 func evaluateMulti(node ast.Node, ext vmExtMap, tla vmExtMap, nativeFuncs map[string]*NativeFunction,
-	maxStack int, ic *importCache, traceOut io.Writer, stringOutputMode bool) (map[string]string, error) {
+	maxStack int, ic *importCache, traceOut io.Writer, stringOutputMode bool, evalHook EvalHook) (map[string]string, error) {
 
-	i, err := buildInterpreter(ext, nativeFuncs, maxStack, ic, traceOut)
+	i, err := buildInterpreter(ext, nativeFuncs, maxStack, ic, traceOut, evalHook)
 	if err != nil {
 		return nil, err
 	}
@@ -1359,9 +1401,9 @@ func evaluateMulti(node ast.Node, ext vmExtMap, tla vmExtMap, nativeFuncs map[st
 
 // TODO(sbarzowski) this function takes far too many arguments - build interpreter in vm instead
 func evaluateStream(node ast.Node, ext vmExtMap, tla vmExtMap, nativeFuncs map[string]*NativeFunction,
-	maxStack int, ic *importCache, traceOut io.Writer) ([]string, error) {
+	maxStack int, ic *importCache, traceOut io.Writer, evalHook EvalHook) ([]string, error) {
 
-	i, err := buildInterpreter(ext, nativeFuncs, maxStack, ic, traceOut)
+	i, err := buildInterpreter(ext, nativeFuncs, maxStack, ic, traceOut, evalHook)
 	if err != nil {
 		return nil, err
 	}

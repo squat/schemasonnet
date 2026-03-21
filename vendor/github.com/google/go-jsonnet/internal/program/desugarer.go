@@ -184,7 +184,7 @@ func desugarForSpec(inside ast.Node, loc ast.LocationRange, forSpec *ast.ForSpec
 	if err != nil {
 		return nil, err
 	}
-	current := buildStdCall("flatMap", loc, function, forSpec.Expr)
+	current := buildStdCall("$flatMapArray", loc, function, forSpec.Expr)
 	if forSpec.Outer == nil {
 		return current, nil
 	}
@@ -434,6 +434,14 @@ func desugar(astPtr *ast.Node, objLevel int) (err error) {
 		}
 
 	case *ast.ImportStr:
+		// See comment in ast.Import.
+		var file ast.Node = node.File
+		err = desugar(&file, objLevel)
+		if err != nil {
+			return
+		}
+
+	case *ast.ImportBin:
 		// See comment in ast.Import.
 		var file ast.Node = node.File
 		err = desugar(&file, objLevel)
