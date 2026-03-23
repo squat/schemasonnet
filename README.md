@@ -18,7 +18,15 @@ Usage:
   schemasonnet [file] [flags]
 
 Flags:
-  -h, --help            help for schemasonnet
-  -J, --jpath strings   Specify an additional library search dir (right-most wins) (default [vendor])
-  -v, --version         version for schemasonnet
+      --ext-code stringArray        Set code value of extVar (Format: key=<code>)
+      --ext-code-file stringArray   Set code value of extVar from file (Format: key=filename)
+  -V, --ext-str stringArray         Set string value of extVar (Format: key=value)
+      --ext-str-file stringArray    Set string value of extVar from file (Format: key=filename)
+  -h, --help                        help for schemasonnet
+  -J, --jpath strings               Specify an additional library search dir (right-most wins) (default [vendor])
+      --tla-code stringArray        Set code value of top level function (Format: key=<code>)
+      --tla-code-file stringArray   Set code value of top level function from file (Format: key=filename)
+  -A, --tla-str stringArray         Set string value of top level function (Format: key=value)
+      --tla-str-file stringArray    Set string value of top level function from file (Format: key=filename)
+  -v, --version                     version for schemasonnet
 ```
