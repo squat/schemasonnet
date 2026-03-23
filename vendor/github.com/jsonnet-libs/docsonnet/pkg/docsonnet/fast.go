@@ -2,7 +2,6 @@ package docsonnet
 
 import (
 	"fmt"
-	"log"
 	"strings"
 )
 
@@ -178,7 +177,7 @@ type ds map[string]interface{}
 func (d ds) Package() Package {
 	hash, ok := d["#"]
 	if !ok {
-		log.Fatalln("Package declaration missing")
+		return Package{}
 	}
 
 	pkg := hash.(map[string]interface{})

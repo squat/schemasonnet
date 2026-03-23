@@ -20,8 +20,8 @@ github.com/google/jsonschema-go/jsonschema
 # github.com/inconshreveable/mousetrap v1.1.0
 ## explicit; go 1.18
 github.com/inconshreveable/mousetrap
-# github.com/jsonnet-libs/docsonnet v0.0.6
-## explicit; go 1.19
+# github.com/jsonnet-libs/docsonnet v0.0.6 => github.com/squat/docsonnet v0.0.0-20260323023749-7f0aee931ffa
+## explicit; go 1.23.7
 github.com/jsonnet-libs/docsonnet/pkg/docsonnet
 # github.com/markbates/pkger v0.15.1
 ## explicit; go 1.13
@@ -48,3 +48,4 @@ golang.org/x/sys/cpu
 ## explicit; go 1.12
 sigs.k8s.io/yaml
 sigs.k8s.io/yaml/goyaml.v2
+# github.com/jsonnet-libs/docsonnet => github.com/squat/docsonnet v0.0.0-20260323023749-7f0aee931ffa

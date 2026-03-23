@@ -11,12 +11,14 @@ import (
 )
 
 type Opts struct {
-	JPath []string
+	ExtCode map[string]string
+	TLACode map[string]string
+	JPath   []string
 }
 
 // Load extracts and transforms the docsonnet data in `filename`, returning the
 // top level docsonnet package.
-func Load(filename string, opts Opts) (*Package, error) {
+func Load(filename string, opts *Opts) (*Package, error) {
 	data, err := Extract(filename, opts)
 	if err != nil {
 		return nil, err
@@ -29,7 +31,7 @@ func Load(filename string, opts Opts) (*Package, error) {
 // information, exactly as they appear in Jsonnet. Keep in mind this
 // representation is usually not suitable for any use, use `Transform` to
 // convert it to the familiar docsonnet data model.
-func Extract(filename string, opts Opts) ([]byte, error) {
+func Extract(filename string, opts *Opts) ([]byte, error) {
 	// get load.libsonnet from embedded data
 	file, err := pkger.Open("/load.libsonnet")
 	if err != nil {
@@ -48,9 +50,15 @@ func Extract(filename string, opts Opts) ([]byte, error) {
 	}
 	vm.Importer(importer)
 
-	// invoke load.libsonnet
 	vm.ExtCode("main", fmt.Sprintf(`(import "%s")`, filename))
+	for k, v := range opts.ExtCode {
+		vm.ExtCode(k, v)
+	}
+	for k, v := range opts.TLACode {
+		vm.TLACode(k, v)
+	}
 
+	// invoke load.libsonnet
 	data, err := vm.EvaluateAnonymousSnippet("load.libsonnet", string(load))
 	if err != nil {
 		return nil, err

@@ -215,7 +215,7 @@ func TestConvert(t *testing.T) {
 			if err := f.Close(); err != nil {
 				t.Fatal(err)
 			}
-			pkg, err := docsonnet.Load(f.Name(), docsonnet.Opts{})
+			pkg, err := docsonnet.Load(f.Name(), &docsonnet.Opts{})
 			if err != nil {
 				t.Fatal(err)
 			}

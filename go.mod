@@ -22,3 +22,5 @@ require (
 )
 
 tool github.com/campoy/embedmd
+
+replace github.com/jsonnet-libs/docsonnet => github.com/squat/docsonnet v0.0.0-20260323023749-7f0aee931ffa
