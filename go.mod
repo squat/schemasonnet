@@ -3,7 +3,7 @@ module github.com/squat/schemasonnet
 go 1.25.0
 
 require (
-	github.com/gobuffalo/here v0.6.0
+	github.com/gobuffalo/here v0.6.7
 	github.com/google/jsonschema-go v0.4.2
 	github.com/jsonnet-libs/docsonnet v0.0.6
 	github.com/markbates/pkger v0.15.1

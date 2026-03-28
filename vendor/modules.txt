@@ -2,8 +2,8 @@
 ## explicit
 github.com/campoy/embedmd
 github.com/campoy/embedmd/embedmd
-# github.com/gobuffalo/here v0.6.0
-## explicit; go 1.13
+# github.com/gobuffalo/here v0.6.7
+## explicit; go 1.16
 github.com/gobuffalo/here
 # github.com/google/go-jsonnet v0.21.0
 ## explicit; go 1.23.7
