@@ -220,7 +220,7 @@
     integer: self.number,
 
     '#boolean': d.val(d.T.string, 'argument of type "boolean"'),
-    boolean: 'bool',
+    boolean: 'boolean',
     bool: self.boolean,
 
     '#object': d.val(d.T.string, 'argument of type "object"'),
