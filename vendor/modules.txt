@@ -23,9 +23,10 @@ github.com/inconshreveable/mousetrap
 # github.com/jsonnet-libs/docsonnet v0.0.6 => github.com/squat/docsonnet v0.0.0-20260323023749-7f0aee931ffa
 ## explicit; go 1.23.7
 github.com/jsonnet-libs/docsonnet/pkg/docsonnet
-# github.com/markbates/pkger v0.15.1
+# github.com/markbates/pkger v0.17.1
 ## explicit; go 1.13
 github.com/markbates/pkger
+github.com/markbates/pkger/here
 github.com/markbates/pkger/internal/maps
 github.com/markbates/pkger/pkging
 github.com/markbates/pkger/pkging/stdos

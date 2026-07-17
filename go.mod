@@ -6,7 +6,7 @@ require (
 	github.com/gobuffalo/here v0.6.0
 	github.com/google/jsonschema-go v0.4.2
 	github.com/jsonnet-libs/docsonnet v0.0.6
-	github.com/markbates/pkger v0.15.1
+	github.com/markbates/pkger v0.17.1
 	github.com/spf13/cobra v1.10.2
 )
 
